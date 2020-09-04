@@ -1,0 +1,18 @@
+FROM arm64v8/python:3.8-alpine as builder
+
+RUN apk add gcc g++ make libffi-dev openssl-dev
+
+ENV LIBRARY_PATH=/lib:/usr/lib
+
+ADD src/requirements.txt /
+RUN pip install --upgrade --user pip && pip install --user -r /requirements.txt
+
+FROM arm64v8/python:3.8-alpine
+COPY --from=builder /root/.local /root/.local
+
+ENV PATH=/root/.local/bin:$PATH
+
+WORKDIR /app
+COPY src /app
+
+CMD ["python", "-u", "/app/main.py"]
